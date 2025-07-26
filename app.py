@@ -1,55 +1,74 @@
-import plotly.express as px
-from shiny.express import input, ui
-from shinywidgets import render_plotly
+from shiny.express import input, render, ui
+# From shiny, import just reactive and render
+from shiny import reactive, render
 
-ui.page_opts(title="Filling layout", fillable=True)
-with ui.layout_columns():
+# From shiny.express, import just ui
+from shiny.express import ui
 
-    @render_plotly
-    def plot1():
-        return px.histogram(px.data.tips(), y="tip")
+# Imports from Python Standard Library to simulate live data
+import random
 
-    @render_plotly
-    def plot2():
-        return px.histogram(px.data.tips(), y="total_bill")
-from collections import deque
-# Create an empty deque
-empty_deque = deque()
-print(empty_deque) 
+from datetime import datetime
+ui.input_slider("n", "N", 0, 100, 20)
 
-# Create a deque by passing in a list with values
-temp_deque_F = deque( [56, 58, 47, 54, 55] )
-print(temp_deque_F)  
 
-# Create a deque by passing in a list variable
-temp_list_C = [5, 6, 8, 4, 3, 2]
-temp_deque_C = deque( temp_list_C )
-print(temp_deque_C )
-temp_deque_F.append(60)
-temp_deque_F.append(62)
-temp_deque_F.append(64)
-temp_deque_F.append(61)
-temp_deque_F.pop()  
-temp_deque_F.popleft()  
-len(temp_deque_F) 
-from collections import deque
+@render.code
+def txt():
+    return f"n*2 is {input.n() * 2}"
 
-# Initialize deque with a max length of 3 to store last 3 stock prices
-msft_prices = deque(maxlen=3)
+# --------------------------------------------
+UPDATE_INTERVAL_SECS: int = 1
+# --------------------------------------------
 
-# Clear the deque (we might call this at the start of a new day)
-msft_prices.clear()
+# REACTIVE CALC 
+@reactive.calc()
+def reactive_calc_combined():
 
-# Simulate updating the stock price with new values
-msft_prices.append(310.35)
-print("MSFT stock prices:", list(msft_prices))
+    # Invalidate this calculation every UPDATE_INTERVAL_SECS to trigger updates
+    reactive.invalidate_later(UPDATE_INTERVAL_SECS)
 
-msft_prices.append(312.31)
-print("MSFT stock prices:", list(msft_prices))
+    # Data generation logic. Get random between -18 and -16 C, rounded to 1 decimal place
+    temp = round(random.uniform(-18, -16), 1)
 
-msft_prices.append(315.25)
-print("MSFT stock prices:", list(msft_prices))
+    # Get a timestamp for "now" and use string format strftime() method to format it
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-msft_prices.append(317.41)
-print("MSFT stock prices:", list(msft_prices))
+    latest_dictionary_entry = {"temp": temp, "timestamp": timestamp}
+
+    # Return everything we need
+    return latest_dictionary_entry
+
+ui.page_opts(title="PyShiny Express: Live Data (Basic)", fillable=True)
+
+# ------------------------------------------------
+# Shiny UI Page layout - Sidebar
+# ------------------------------------------------
+with ui.sidebar(open="open"):
+    ui.h2("Antarctic Explorer", class_="text-center")
+    ui.p(
+        "A demonstration of real-time temperature readings in Antarctica.",
+        class_="text-center",
+    )
+
+ui.h2("Current Temperature")
+
+@render.text
+def display_temp():
+    """Get the latest reading and return a temperature string"""
+    latest_dictionary_entry = reactive_calc_combined()
+    return f"{latest_dictionary_entry['temp']} C"
+
+ui.p("warmer than usual")
+
+#icon_svg("sun")
+
+ui.hr()
+
+ui.h2("Current Date and Time")
+
+@render.text
+def display_time():
+    """Get the latest reading and return a timestamp string"""
+    latest_dictionary_entry = reactive_calc_combined()
+    return f"{latest_dictionary_entry['timestamp']}"   
 
