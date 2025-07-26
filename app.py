@@ -11,6 +11,8 @@ import random
 from datetime import datetime
 ui.input_slider("n", "N", 0, 100, 20)
 
+# Import icons as you like
+from faicons import icon_svg
 
 @render.code
 def txt():
@@ -71,4 +73,12 @@ def display_time():
     """Get the latest reading and return a timestamp string"""
     latest_dictionary_entry = reactive_calc_combined()
     return f"{latest_dictionary_entry['timestamp']}"   
+
+with ui.layout_columns():
+    with ui.card():
+        ui.card_header("Current Data (placeholder only)")
+
+with ui.layout_columns():
+    with ui.card():
+        ui.card_header("Current Chart (placeholder only)")
 
